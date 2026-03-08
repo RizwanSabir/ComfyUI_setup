@@ -1,1 +1,8 @@
 https://github.com/ltdrdata/ComfyUI-Manager.git
+https://github.com/crystian/ComfyUI-Crystools
+https://github.com/yolain/ComfyUI-Easy-Use
+https://github.com/MohammadAboulEla/ComfyUI-iTools
+https://github.com/comfyuistudio/ComfyUI-Studio-nodes
+https://github.com/WASasquatch/was-node-suite-comfyui
+https://github.com/rgthree/rgthree-comfy
+https://github.com/kk8bit/kaytoolhttps://github.com/kk8bit/kaytool
