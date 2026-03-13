@@ -61,7 +61,7 @@ for node_dir in "$CUSTOM_NODES_DIR"/*/; do
 done
 
 # 7. Make run scripts executable
-chmod +x "$SCRIPT_DIR/cpu_run.sh" "$SCRIPT_DIR/gpu_run.sh"
+chmod +x "$SCRIPT_DIR/cpu_run.sh" "$SCRIPT_DIR/gpu_run.sh" "$SCRIPT_DIR/models_delete_all.sh" "$SCRIPT_DIR/models_delete_some.sh"
 
 # 8. Completion message
 echo ""
