@@ -541,6 +541,46 @@ The image must be in the **running ComfyUI instance's** `input/` folder. Check:
 ls ComfyUI_setup/ComfyUI/input/
 ```
 
+### `conda run --no-banner` not recognized (conda 25+)
+
+Conda 25.7+ removed the `--no-banner` flag. If you see:
+
+```
+conda: error: unrecognized arguments: --no-banner
+```
+
+Use `conda run` without `--no-banner`:
+
+```bash
+# Wrong (fails on conda 25+):
+conda run --no-banner -n comfy bash install.sh
+
+# Correct:
+conda run -n comfy bash install.sh
+```
+
+### Comfy-Pilot terminal covers the canvas on first load
+
+When ComfyUI opens in the browser, the Comfy-Pilot embedded terminal (Claude Code) may appear as a floating overlay covering the workflow canvas. To see your nodes:
+
+- Click the **×** (close) button on the terminal window, OR
+- Click **Toggle Bottom Panel** in the left sidebar to hide/show it
+
+The terminal can be reopened anytime from the sidebar.
+
+### Corrupted URLs in `custom_nodes.txt`
+
+If `install.sh` fails to clone a custom node, check `custom_nodes.txt` for malformed lines. A common issue is two URLs accidentally concatenated on the same line:
+
+```
+# Wrong:
+https://github.com/user/repo1https://github.com/user/repo2
+
+# Correct (one URL per line):
+https://github.com/user/repo1
+https://github.com/user/repo2
+```
+
 ### Claude Code CLI not found
 
 ```bash

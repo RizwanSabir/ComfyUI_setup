@@ -1,0 +1,25 @@
+# Ignore everything
+*
+
+# Allow directories to be traversed
+!*/
+
+# Allow .md files
+!*.md
+!**/*.md
+
+# Allow .sh files
+!*.sh
+!**/*.sh
+
+# Allow .txt files (custom_nodes.txt)
+!*.txt
+!**/*.txt
+
+# Allow .gitignore itself
+!.gitignore
+
+# Always ignore these directories entirely
+node_modules/
+Comfy-Pilot/
+ComfyUI_setup/ComfyUI/
