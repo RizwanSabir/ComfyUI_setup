@@ -16,6 +16,10 @@
 !*.txt
 !**/*.txt
 
+# Allow .html files
+!*.html
+!**/*.html
+
 # Allow .gitignore itself
 !.gitignore
 

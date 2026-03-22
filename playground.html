@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComfyUI Playground</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --text-muted: #8b949e; --text-bright: #f0f6fc;
+    --accent: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #d29922;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { display: flex; flex-direction: column; }
+
+  .top-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .top-bar h1 { font-size: 15px; font-weight: 600; color: var(--text-bright); white-space: nowrap; }
+  .url-group { display: flex; flex: 1; gap: 8px; }
+  .url-input {
+    flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text-bright); font-size: 13px; outline: none;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .url-input:focus { border-color: var(--accent); }
+  .btn {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: #238636; border-color: #2ea043; color: var(--text-bright); font-size: 13px; cursor: pointer;
+  }
+  .btn:hover { background: #2ea043; }
+
+  .status-group { display: flex; align-items: center; gap: 10px; }
+  .status-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); }
+  .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .dot.yellow { background: var(--yellow); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  .install-guide {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s, padding 0.3s;
+  }
+  .install-guide.visible { max-height: 400px; padding: 14px 16px; }
+  .install-guide h3 { font-size: 14px; color: var(--red); margin-bottom: 10px; }
+  .install-guide pre {
+    background: var(--bg); border-radius: 6px; padding: 12px 16px; border: 1px solid var(--border);
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap;
+  }
+  .install-guide .cmd { color: var(--accent); }
+  .install-guide .cmt { color: var(--text-muted); }
+
+  .btn-logs {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .btn-logs:hover { background: #30363d; }
+  .btn-logs.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .iframe-container { flex: 1; position: relative; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .iframe-container iframe { width: 100%; height: 100%; border: none; }
+  .msg { text-align: center; color: var(--text-muted); font-size: 14px; }
+
+  .logs-panel {
+    height: 250px; background: #010409; border-top: 1px solid var(--border);
+    display: none; flex-shrink: 0; flex-direction: column;
+  }
+  .logs-panel.visible { display: flex; }
+  .logs-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .logs-header span { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .logs-body {
+    flex: 1; overflow-y: auto; padding: 8px 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.5;
+    white-space: pre-wrap; word-break: break-all; color: var(--text);
+  }
+  .logs-body::-webkit-scrollbar { width: 6px; }
+  .logs-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .log-err { color: var(--red); }
+  .log-time { color: var(--text-muted); margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>ComfyUI Playground</h1>
+  <div class="url-group">
+    <input type="text" class="url-input" id="url" placeholder="http://localhost:3000 or https://..." value="">
+    <button class="btn" onclick="connect()">Connect</button>
+  </div>
+  <div class="status-group">
+    <div class="status-item"><span>ComfyUI</span><div class="dot" id="comfyDot"></div></div>
+    <div class="status-item"><span>MCP</span><div class="dot" id="mcpDot"></div></div>
+  </div>
+  <button class="btn-logs" id="logsBtn" onclick="toggleLogs()">Logs</button>
+</div>
+
+<div class="install-guide" id="guide">
+  <h3>Comfy-Pilot MCP Not Detected</h3>
+  <pre><span class="cmt"># On your remote ComfyUI server:</span>
+<span class="cmd">cd /path/to/ComfyUI/custom_nodes</span>
+<span class="cmd">git clone https://github.com/ConstantineB6/Comfy-Pilot.git</span>
+<span class="cmt"># Restart ComfyUI, then verify:</span>
+<span class="cmd">curl -s http://localhost:3000/claude-code/mcp-status</span>
+<span class="cmt"># Expected: {"connected": true, "tools": 15}</span></pre>
+</div>
+
+<div class="main">
+  <div class="iframe-container" id="container">
+    <div class="msg" id="msg">Paste a ComfyUI URL and click Connect</div>
+  </div>
+  <div class="logs-panel" id="logsPanel">
+    <div class="logs-header">
+      <span>Server Logs</span>
+      <button class="btn-logs" onclick="fetchLogs()" style="padding:3px 10px;font-size:11px;">Refresh</button>
+    </div>
+    <div class="logs-body" id="logsBody"></div>
+  </div>
+</div>
+
+<script>
+function connect() {
+  let url = document.getElementById('url').value.trim().replace(/\/+$/, '');
+  if (!url) return;
+  if (!/^https?:\/\//.test(url)) url = 'http://' + url;
+
+  const comfy = document.getElementById('comfyDot');
+  const mcp = document.getElementById('mcpDot');
+  const guide = document.getElementById('guide');
+  const container = document.getElementById('container');
+  const msg = document.getElementById('msg');
+
+  comfy.className = 'dot yellow';
+  mcp.className = 'dot yellow';
+  guide.classList.remove('visible');
+  msg.style.display = 'none';
+  const old = container.querySelector('iframe');
+  if (old) old.remove();
+
+  // Check ComfyUI
+  fetch(url + '/system_stats', { signal: AbortSignal.timeout(10000) })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(() => { comfy.className = 'dot green'; })
+    .catch(() => {
+      fetch(url + '/system_stats', { mode: 'no-cors', signal: AbortSignal.timeout(10000) })
+        .then(() => { comfy.className = 'dot green'; })
+        .catch(() => {
+          comfy.className = 'dot red';
+          msg.textContent = 'Cannot reach ' + url;
+          msg.style.display = 'block';
+        });
+    });
+
+  // Check MCP
+  fetch(url + '/claude-code/mcp-status', { signal: AbortSignal.timeout(10000) })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+      mcp.className = d.connected ? 'dot green' : 'dot red';
+      if (!d.connected) guide.classList.add('visible');
+    })
+    .catch(() => { mcp.className = 'dot red'; guide.classList.add('visible'); });
+
+  // Load iframe
+  const iframe = document.createElement('iframe');
+  iframe.src = url;
+  container.appendChild(iframe);
+}
+
+document.getElementById('url').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
+
+let logsUrl = '';
+
+function toggleLogs() {
+  const panel = document.getElementById('logsPanel');
+  const btn = document.getElementById('logsBtn');
+  const visible = panel.classList.toggle('visible');
+  btn.classList.toggle('active', visible);
+  if (visible) fetchLogs();
+}
+
+function fetchLogs() {
+  const url = document.getElementById('url').value.trim().replace(/\/+$/, '');
+  if (!url) return;
+  const base = /^https?:\/\//.test(url) ? url : 'http://' + url;
+  const body = document.getElementById('logsBody');
+  body.textContent = 'Loading...';
+
+  fetch(base + '/internal/logs/raw', { signal: AbortSignal.timeout(10000) })
+    .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
+    .then(data => {
+      body.innerHTML = '';
+      const entries = data.entries || data;
+      if (!Array.isArray(entries) || entries.length === 0) {
+        body.textContent = 'No logs available.';
+        return;
+      }
+      entries.forEach(entry => {
+        const line = document.createElement('div');
+        if (entry.timestamp) {
+          const ts = document.createElement('span');
+          ts.className = 'log-time';
+          ts.textContent = new Date(entry.timestamp * 1000).toLocaleTimeString();
+          line.appendChild(ts);
+        }
+        const text = document.createElement('span');
+        const msg = entry.message || entry.m || entry;
+        text.textContent = typeof msg === 'string' ? msg : JSON.stringify(msg);
+        if (entry.level === 'stderr' || entry.type === 'stderr') text.className = 'log-err';
+        line.appendChild(text);
+        body.appendChild(line);
+      });
+      body.scrollTop = body.scrollHeight;
+    })
+    .catch(err => {
+      body.textContent = 'Failed to fetch logs: ' + err;
+    });
+}
+</script>
+</body>
+</html>
