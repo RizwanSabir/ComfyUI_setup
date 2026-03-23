@@ -25,19 +25,10 @@ ComfyUI/                  # Root project directory
 ## Running ComfyUI
 
 - **CPU mode:** `./cpu_run.sh` — uses `--cpu` flag
-- **GPU mode:** `./gpu_run.sh` — interactive menu: 1) Low VRAM, 2) Normal GPU (DynamicVRAM), 3) High VRAM (dedicated only)
+- **GPU mode:** `./gpu_run.sh` — interactive menu for low VRAM (4-6GB) or high VRAM (12+GB)
 - Both scripts listen on `0.0.0.0:3000`
 - Both scripts auto-kill any existing process on port 3000 before starting
 - Do NOT use `--enable-manager` flag — ComfyUI-Manager works by default without it
-
-## Blackwell GPU / Shared VPS Notes
-
-- **Must use `--disable-cuda-malloc`** — the default `cudaMallocAsync` allocator causes fake OOM errors on Blackwell GPUs
-- **Must set `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`** — required for native allocator to work on shared VPS
-- **Do NOT use `--highvram`** — shared VPS has ~9-10 GiB GPU quota per user (nvidia-smi shows 97GB total but most is used by other tenants). `--highvram` tries to load full models at once via `model.to(device)`, exceeding the quota. Use NORMAL_VRAM mode instead, which enables DynamicVRAM to stream weights on-demand within the quota
-- `gpu_run.sh` already includes `--disable-cuda-malloc` and `expandable_segments:True`
-- Option 3 (`--highvram`) is available in `gpu_run.sh` but confirmed to OOM on shared VPS — only use on dedicated GPU instances
-- All custom node dependencies installed (`deepdiff`, `numba`) — all nodes load successfully
 
 ## Custom Nodes
 
@@ -51,4 +42,4 @@ ComfyUI/                  # Root project directory
 - Never use `pip install comfyui` — always git clone
 - Never use `--enable-manager` — manager is enabled by default
 - Always activate `conda activate comfy` before running scripts
-- PyTorch is installed with NVIDIA CUDA (cu130 nightly) for Blackwell GPU support — works for both GPU and CPU modes
+- PyTorch is installed with NVIDIA CUDA (cu124) — works for both GPU and CPU modes
